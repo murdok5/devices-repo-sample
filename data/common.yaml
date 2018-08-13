@@ -1,18 +1,27 @@
 ---
 message: "This node is using common data"
 
+# set hiera merge strategies
+# https://puppet.com/docs/puppet/5.5/hiera_merging.html#setting-the-merge-behavior-for-a-lookup
 lookup_options:
   profile::ntp_server::servers:
     strategy: deep
+  profile::interface::interfaces:
+    strategy: unique
+  profile::network_vlan::vlans:
+    strategy: unique
 
+# manage default banner
 profile::banner::motd: 'Managed by Puppet - common.yaml'
 
+# manage device connection defaults
 profile::device_manager::defaults:
   type: cisco_ios
   username: admin
   password: admin
   enable_password: admin
 
+# manage ntp servers
 profile::ntp_server::servers:
   1.2.3.4:
     prefer: true
@@ -21,6 +30,7 @@ profile::ntp_server::servers:
     prefer: false
     ensure: present
 
+# manage vlans
 profile::network_vlan::vlans:
   '10':
     vlan_name: Default-VLAN10
@@ -34,3 +44,63 @@ profile::network_vlan::vlans:
     vlan_name: Default-VLAN30
     shutdown: false
     ensure: present
+
+# manage interfaces
+profile::interface:interfaces:
+  'Loopback1':
+    enable: true
+    description: 'Loopback Interface'
+  'GigabitEthernet1/0/1':
+    enable: true
+    description: '101'
+    speed: '100m'
+  'GigabitEthernet1/0/2':
+    enable: true
+    description: '102'
+    speed: '1g'
+  'GigabitEthernet1/0/3':
+    enable: true
+    description: '103'
+    speed: '10m'
+  'GigabitEthernet1/0/4':
+    enable: true
+    description: '104'
+    speed: '1g'
+
+# manage IOS items through commands
+profile::commands:
+
+  # 1. manage hostname
+  hostname:
+    command         : hostname cat-3750
+    idempotent_regex: hostname cat-3750
+
+  # 2. manage user
+  user: username dimitri password 7 095D590C0B110E
+
+  # manage aaa, caution, you can lock yourself out!
+  # need idempotent regex here to prevent matching with
+  # "no aaa new-model"
+  aaa-new-model:
+    command:          aaa new-model
+    idempotent_regex: '^aaa new-model'
+  #aaa: aaa authorization configuration default group tacacs+
+  #aaa-session: aaa session-id common
+
+  # manage tacacs
+  tacacs1: tacacs-server host 192.168.10.1
+  tacacs2: tacacs-server host 192.168.10.2
+  no-directed-request: no tacacs-server directed-request
+  tacacs-key: tacacs-server key tacacs-KEY
+
+  # 9. ACL configuration
+  acl:
+    command: |
+      no ip access-list extended test-acl
+      ip access-list extended test-acl
+       permit tcp 192.168.10.0 0.0.0.255 any eq 22 log
+       permit udp 192.168.10.0 0.0.0.255 any
+    multiline_regex: |
+      ip access-list extended test-acl
+       permit tcp 192.168.10.0 0.0.0.255 any eq 22 log
+       permit udp 192.168.10.0 0.0.0.255 any
