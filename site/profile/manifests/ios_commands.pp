@@ -1,4 +1,4 @@
-class profile::commands (
+class profile::ios_commands (
   Hash $commands = {},
 ) {
 

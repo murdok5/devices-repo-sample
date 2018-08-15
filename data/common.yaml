@@ -46,7 +46,7 @@ profile::network_vlan::vlans:
     ensure: present
 
 # manage interfaces
-profile::interface:interfaces:
+profile::interface::interfaces:
   'Loopback1':
     enable: true
     description: 'Loopback Interface'
@@ -68,7 +68,7 @@ profile::interface:interfaces:
     speed: '1g'
 
 # manage IOS items through commands
-profile::commands:
+profile::ios_commands::commands:
 
   # 1. manage hostname
   hostname:
@@ -76,7 +76,7 @@ profile::commands:
     idempotent_regex: hostname cat-3750
 
   # 2. manage user
-  user: username dimitri password 7 095D590C0B110E
+  user: username testuser password 7 095D590C0B110E
 
   # manage aaa, caution, you can lock yourself out!
   # need idempotent regex here to prevent matching with
